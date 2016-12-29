@@ -1,0 +1,107 @@
+#!/bin/bash
+# ////////////////////////////////////////////////////////////////////////////////
+# //BOCA Online Contest Administrator
+# //    Copyright (C) 2003-2012 by BOCA System (bocasystem@gmail.com)
+# //
+# //    This program is free software: you can redistribute it and/or modify
+# //    it under the terms of the GNU General Public License as published by
+# //    the Free Software Foundation, either version 3 of the License, or
+# //    (at your option) any later version.
+# //
+# //    This program is distributed in the hope that it will be useful,
+# //    but WITHOUT ANY WARRANTY; without even the implied warranty of
+# //    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# //    GNU General Public License for more details.
+# //    You should have received a copy of the GNU General Public License
+# //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ////////////////////////////////////////////////////////////////////////////////
+#Last modified: 21/july/2012 by cassio@ime.usp.br
+#
+# parameters are:
+# $1 source_file
+# $2 exe_file (default run.exe)
+# $3 timelimit (optional, limit to run all the repetitions, by default only one repetition)
+# $4 maximum allowed memory (in MBytes, default 512M)
+#
+# the output of the submission should be directed to the standard output
+#
+# the return code show what happened (according to safeexec):
+# 0 ok
+# 1 compile error
+# 2 runtime error
+# 3 timelimit exceeded
+# 4 internal error
+# 5 parameter error
+# 6 internal error
+# 7 memory limit exceeded
+# 8 security threat
+# 9 runtime error
+# other_codes are unknown to boca: in this case BOCA will present the
+#                                  last line of standard output to the judge
+
+#umask 0022
+
+if [ "$1" == "" ]; then
+    echo "parameter problem"
+    exit 43
+fi
+if [ ! -r "$1" ]; then
+    echo "$1 not found or it's not readable"
+    exit 44
+fi
+name="$1"
+if [ ! -r "$1" ]; then
+    echo "$1 not found or it's not readable"
+    exit 44
+fi
+
+maxm=512000
+if [ "$4" != "" ]; then
+  if [ "$4" -gt "0" ]; then
+    maxm=${4}000
+  fi
+fi
+
+# setting up the timelimit according to the problem
+if [ "$3" == "" ]; then
+  time=5
+else
+  time=$3
+fi
+let "ttime = $time + 30"
+
+if [ "$2" == "" ]; then
+  exe=run.exe
+else
+  exe=$2
+fi
+
+rm -f $exe compileit.retcode runit.retcode stderr0  stdin0  stdout0 2>/dev/null
+
+cdir=`pwd`
+echo "Current directory is $cdir" >&2
+
+/usr/bin/gcc -Wall -static -O2 -o $exe $name -lm 2> log
+ret=$?
+
+if [ -f "stdout0" ]; then
+  cat "stdout0"
+fi
+
+if [ -f "stderr0" ]; then
+  cat "stderr0"
+fi
+
+if [ "$ret" != "0" ]; then
+  echo "Compilation Error: $ret"
+  cat log > stderr0
+  cat stderr0
+  exit $ret
+else
+  cat log
+  echo "======= Successful compilation ========"
+  echo "run/c $exe src/input2 1"
+  run/c $exe src/input2 1
+fi
+
+exit $ret
