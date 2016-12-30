@@ -14,3 +14,19 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/test', function () {
+    return 'test';
+});
+
+Route::get('/upload', function () {
+    return view( 'upload' );
+});
+
+Route::post( '/upload', function () {
+    return $_POST;
+});
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index');
