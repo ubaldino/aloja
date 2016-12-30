@@ -41,17 +41,9 @@
 # other_codes are unknown to boca: in this case BOCA will present the
 #                                  last line of standard output to the judge
 
-umask 0022
-id -u bocajail >/dev/null 2>/dev/null
-if [ $? == 0 ]; then
-	bocau=`id -u bocajail`
-	bocag=`id -g bocajail`
-	chown bocajail.nogroup .
-else
-	bocau=`id -u nobody`
-	bocag=`id -g nobody`
-	chown nobody.nogroup .
-fi
+bocau=`id -u`
+bocag=`id -g`
+
 if [ "$bocau" == "" -o "$bocag" == "" ]; then
 	echo "error finding user to run script"
 	exit 43
@@ -59,8 +51,7 @@ fi
 
 # this script makes use of safeexec to execute the code with less privilegies
 # make sure that directories below are correct.
-sf=`which safeexec`
-[ -x "$sf" ] || sf=/usr/bin/safeexec
+sf="`pwd`/safeexec"
 
 if [ "$1" == "" -o "$2" == "" -o "$3" == "" ]; then
     echo "parameter problem"
@@ -117,7 +108,7 @@ fi
 
 cdir=`pwd`
 echo "Current directory is $cdir -- chrooting on it" >&2
-$sf -F10 -f$maxf -r$nruns -n1 -R$cdir -C. -U$bocau -G$bocag -ostdout0 -estderr0 -d$maxm -m$maxm -t$time -T$ttime -istdin0 ./run.exe
+$sf -F10 -f$maxf -r$nruns -n0 -K -R$cdir -C. -U$bocau -G$bocag -ostdout0 -estderr0 -d$maxm -m$maxm -t$time -T$ttime -istdin0 ./run.exe
 ret=$?
 if [ $ret -gt 10 ]; then
 	ret=0
@@ -125,4 +116,14 @@ fi
 if [ -f stdout0 ]; then
   cat stdout0
 fi
+
+if [ "$ret" != "0" ]; then
+  echo "Compilation Error: $ret"
+  exit $ret
+else
+  echo "======= Successful Run ========"
+  echo "compare/cpp src/output2 stdout0"
+  compare/cpp src/output2 stdout0
+fi
+
 exit $ret

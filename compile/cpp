@@ -39,8 +39,6 @@
 # other_codes are unknown to boca: in this case BOCA will present the
 #                                  last line of standard output to the judge
 
-umask 0022
-
 if [ "$1" == "" ]; then
     echo "parameter problem"
     exit 43
@@ -54,23 +52,10 @@ if [ ! -r "$1" ]; then
     echo "$1 not found or it's not readable"
     exit 44
 fi
-mkdir -p src
-if [ "${name##*.}" == "zip" -a "${name##*.}" == "ZIP" ]; then
-	unzip "$name" -d src
-	name="*.c"
-else
-	cp "$name" src
-fi
-id -u bocajail >/dev/null 2>/dev/null
-if [ $? == 0 ]; then
-	bocau=`id -u bocajail`
-	bocag=`id -g bocajail`
-	chown bocajail.nogroup .
-else
-	bocau=`id -u nobody`
-	bocag=`id -g nobody`
-	chown nobody.nogroup .
-fi
+
+bocau=`id -u`
+bocag=`id -g`
+
 if [ "$bocau" == "" -o "$bocag" == "" ]; then
 	echo "error finding user to run script"
 	exit 43
@@ -78,8 +63,9 @@ fi
 
 # this script makes use of safeexec to execute the code with less privilegies
 # make sure that directories below are correct.
-sf=`which safeexec`
-[ -x "$sf" ] || sf=/usr/bin/safeexec
+
+sf="`pwd`/safeexec"
+
 if [ ! -x $sf ]; then
     echo "$sf not found or it's not executable"
     exit 46
@@ -105,68 +91,40 @@ else
   exe=$2
 fi
 
-rm -f $exe compileit.retcode runit.retcode 2>/dev/null
-cat <<EOF > compileit.sh
-#!/bin/bash
-cc=\`which g++\`
-[ -x "\$cc" ] || cc=/usr/bin/g++
-if [ ! -x "\$cc" ]; then
-    echo "\$cc not found or it's not executable"
-    exit 47
-fi
-cd src
-"\$cc" -static -O2 -o ../$exe $name -lm
-echo \$? > ../compileit.retcode
-exit 0
-EOF
-chmod 755 compileit.sh
+rm -f $exe compileit.retcode runit.retcode stderr0  stdin0  stdout0 2>/dev/null
 
 cdir=`pwd`
 echo "Current directory is $cdir" >&2
-echo $cdir | grep -q "/bocajail"
-if [ $? == 0 ]; then
-    cdir=`echo $cdir | sed "s/.*\/bocajail//"`
-    echo "Internal directory is $cdir"
-    cat <<EOF > runit.sh
-#!/bin/bash
-cd "$cdir"
-[ -f /proc/cpuinfo ] || /bin/mount -t proc proc /proc
-#/bin/mount --bind /dev /dev
-[ -d /sys/kernel ] || /bin/mount -t sysfs sysfs /sys
-$sf -r1 -F1000 -n0 -U$bocau -G$bocag -C. -ostdout0 -estderr0 -d$maxm -m$maxm -f20000 -t$ttime -T$ttime ./compileit.sh
-echo \$? > runit.retcode
-if [ ! -d /bocajail ]; then
-  /bin/umount /proc 2>/dev/null
-  #/bin/umount /dev
-  /bin/umount /sys 2>/dev/null
+
+echo "COMPILATION IS NOT BEING CHROOTED -- THIS IS NOT AN IDEAL SETTING"
+#$sf -r1 -F1000 -n0 -U$bocau -G$bocag -C. -ostdout0 -estderr0 -d$maxm -m$maxm -f20000 -t$ttime -T$ttime ./compileit.sh
+
+cc=/usr/bin/g++
+if [ ! -x "$cc" ]; then
+    echo "$cc not found or it's not executable"
+    exit 47
 fi
-EOF
-    chmod 755 runit.sh
-    chroot /bocajail "$cdir/runit.sh"
-    if [ -r runit.retcode ]; then
-    	ret=`cat runit.retcode`
-    else
-		ret=99
-    fi
-else
-	echo "COMPILATION IS NOT BEING CHROOTED -- THIS IS NOT AN IDEAL SETTING"
-	$sf -r1 -F1000 -n0 -U$bocau -G$bocag -C. -ostdout0 -estderr0 -d$maxm -m$maxm -f20000 -t$ttime -T$ttime ./compileit.sh
-	ret=$?
-fi
+
+$cc -static -O2 -Wall -o $exe $name -lm 2> log
+ret=$?
+
 if [ -f "stdout0" ]; then
 	cat "stdout0"
 fi
 if [ -f "stderr0" ]; then
 	cat "stderr0"
 fi
-rm -rf src/
+
 if [ "$ret" != "0" ]; then
 	echo "Compilation Error: $ret"
-	exit $ret
+  cat log
+  exit $ret
 fi
-ret=`cat compileit.retcode`
-if [ "$ret" != "0" ]; then
-	echo "Compilation Error: $ret"
-	ret=1
-fi
+
+echo $ret
+cat log
+
+run/cpp $exe src/input2 1
+
+
 exit $ret
