@@ -39,65 +39,18 @@
 # other_codes are unknown to boca: in this case BOCA will present the
 #                                  last line of standard output to the judge
 
-umask 0022
 if [ "$1" == "" ]; then
     echo "parameter problem"
     exit 43
 fi
 name="$1"
 if [ ! -r "$1" ]; then
-    echo "$1 not found or it's not readable"
-    exit 44
-fi
-id -u bocajail >/dev/null 2>/dev/null
-if [ $? == 0 ]; then
-	bocau=`id -u bocajail`
-	bocag=`id -g bocajail`
-	chown bocajail.nogroup .
-else
-	bocau=`id -u nobody`
-	bocag=`id -g nobody`
-	chown nobody.nogroup .
-fi
-if [ "$bocau" == "" -o "$bocag" == "" ]; then
-	echo "error finding user to run script"
-	exit 43
-fi
 
-mkdir -p src
-if [ "${name##*.}" == "zip" -a "${name##*.}" == "ZIP" ]; then
-	unzip "$name" -d src
-    if [ "${name##*.}" == "zip" ]; then
-		name=`basename $name .zip`
-	else
-		name=`basename $name .ZIP`
-	fi
-else
-	cp $name src
-fi
-chown -R $bocau src
-chmod -R 700 src
-
-# this script makes use of safeexec to execute the code with less privilegies
-# make sure that directories below are correct.
-sf=`which safeexec`
-[ -x "$sf" ] || sf=/usr/bin/safeexec
-if [ ! -x $sf ]; then
-    echo "$sf not found or it's not executable"
-    exit 46
-fi
-
-time=$4
-if [ "$time" -gt "0" ]; then
-  let "ttime = $time + 30"
-else
-  time=1
   ttime=30
 fi
-
 maxm=512
 if [ "$4" != "" -a "$4" -gt "0" ]; then
-maxm=$4
+  maxm=$4
 fi
 
 if [ "$2" == "" ]; then
@@ -108,86 +61,39 @@ fi
 
 cdir=`pwd`
 echo "Current directory is $cdir" >&2
+
+cp $name .
+
+name=`echo $name | cut -d'/' -f2`
 mainname=`echo $name | cut -d'.' -f1`
 if [ "$mainname" == "" ]; then
   mainname=Main
 fi
 
-cat <<EOF > compileit.sh
-#!/bin/bash
-javac=`which javac`
-[ -x "\$javac" ] || javac=/usr/bin/javac
-if [ ! -x \$javac ]; then
-    echo "\$javac not found or it's not executable"
-    exit 47
-fi
-jar=`which jar`
-[ -x "\$jar" ] || jar=/usr/bin/jar
-if [ ! -x \$jar ]; then
-    echo "\$jar not found or it's not executable"
-    exit 47
-fi
-export CLASSPATH=.:\$CLASSPATH
-cd src
-if [ -r "$name" ]; then
-  \$javac "$name"
-  echo \$? > ../compileit.retcode
-fi
-find . -name "*.java" | while read lin; do
-  \$javac "\$lin"
-  echo \$? > ../compileit.retcode
-done
-rm -f ../$jarfile
-\$jar cvfe ../$jarfile $mainname *
-exit 0
-EOF
-chmod 755 compileit.sh
+#find . -name "*.java" | while read lin; do
+#  \$javac "\$lin"
+#  echo \$? > ../compileit.retcode
+#done
 
-echo $cdir | grep -q "/bocajail"
-if [ $? == 0 ]; then
-    cdir=`echo $cdir | sed "s/.*\/bocajail//"`
-    cat <<EOF > runit.sh
-#!/bin/bash
-cd "$cdir"
-[ -f /proc/cpuinfo ] || /bin/mount -t proc proc /proc
-#/bin/mount --bind /dev /dev
-[ -d /sys/kernel ] || /bin/mount -t sysfs sysfs /sys
+echo "COMPILATION IS NOT BEING CHROOTED -- THIS IS NOT AN IDEAL SETTING"
+/bin/javac $name 2> log
+ret=$?
 
-$sf -r1 -t$time -T$ttime -F256 -u256 -ostdout0 -estderr0 -U$bocau -G$bocag -n0 -C. -f20000 -d20000000 -m20000000 ./compileit.sh
-echo \$? > runit.retcode
-if [ ! -d /bocajail ]; then
-  /bin/umount /proc 2>/dev/null
-  #/bin/umount /dev
-  /bin/umount /sys 2>/dev/null
+if [ "$ret" != "0" ]; then
+  echo "Compilation Error: $ret"
+  exit $ret
 fi
-EOF
-    chmod 755 runit.sh
-    chroot /bocajail "$cdir/runit.sh"
-    if [ -r runit.retcode ]; then
-    	ret=`cat runit.retcode`
-    else
-		ret=99
-    fi
-else
-	echo "COMPILATION IS NOT BEING CHROOTED -- THIS IS NOT AN IDEAL SETTING"
-#	$javac "$name"
-	$sf -r1 -t$time -T$ttime -F256 -u256 -U$bocau -G$bocag -ostdout0 -estderr0 -n0 -C. -d20000000 -m20000000 ./compileit.sh
-	ret=$?
-fi
+
+rm -f ./run.jar
+/bin/jar cvfe ./$jarfile $mainname "$mainname.class"
+
+#$sf -r1 -t$time -T$ttime -F256 -u256 -U$bocau -G$bocag -ostdout0 -estderr0 -n0 -C. -d20000000 -m20000000 ./compileit.sh
+
 if [ -f "stdout0" ]; then
 	cat "stdout0"
 fi
 if [ -f "stderr0" ]; then
 	cat "stderr0"
 fi
-rm -rf src/
-if [ "$ret" != "0" ]; then
-	echo "Compilation Error: $ret"
-	exit $ret
-fi
-ret=`cat compileit.retcode`
-if [ "$ret" != "0" ]; then
-	echo "Compilation Error: $ret"
-	ret=1
-fi
+
 exit $ret
