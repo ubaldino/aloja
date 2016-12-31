@@ -16,10 +16,10 @@ class CreateAnswersTable extends Migration
         Schema::create( 'answers' , function ( Blueprint $table ) {
             $table->bigIncrements('id');
             //$table->increments('id');
-            $table->string( 'source_code' );
+            $table->longText( 'source_code' );
             $table->string( 'result' )->nullable();
-            $table->string( 'stdout' )->nullable();
-            $table->string( 'stderr' )->nullable();
+            $table->longText( 'stdout' )->nullable();
+            $table->longText( 'stderr' )->nullable();
             $table->boolean( 'judged' )->default( false );
 
             $table->integer( 'user_id' );

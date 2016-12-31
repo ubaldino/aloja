@@ -8,14 +8,15 @@ class Answer extends Model
 {
 
     protected $fillable = [
+        'user_id' ,
+        'problem_id' ,
+        'lang_id' ,
         'source_code' ,
+        /*  fill after judge*/
         'result' ,
         'stdout' ,
         'stderr' ,
-        'judged' ,
-        'user_id' ,
-        'problem_id' ,
-        'lang_id'
+        'judged'
     ];
 
 }
