@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sf="`pwd`/safeexec"
+sf="`pwd`/env/safeexec"
 
 if [ "$1" == "" -o "$2" == "" -o "$3" == "" ]; then
     exit 43

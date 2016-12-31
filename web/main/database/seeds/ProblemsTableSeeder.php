@@ -15,7 +15,7 @@ class ProblemsTableSeeder extends Seeder {
         Problem::create([
             'number' => 1000 ,
             'name' => 'E - Easy Diet' ,
-            'slug_name' => Str::slug( 'E - Easy Diet' , $separator = '-') ,
+            'slug_name' => Str::slug( 'E - Easy Diet' , $separator = '_') ,
             'description' => "Your friend Ana is going to begin a diet. She is going to eat only items of food that have at most 1000 calories. Given a list of items she may eat, your task is to assist her in computing how many of those items can be included in her diet.
 
 Input
