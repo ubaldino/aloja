@@ -1,10 +1,12 @@
-#!/usr/bin/env php
 <?php
 
 define( 'PWD' , getcwd() ) ;
 
+require_once "Database.php";
 require_once "errors_table.php";
 
+
+/*
 # Change values  for  source code compilation
 
 $compiler = "py";        // py , c , cpp
@@ -48,6 +50,5 @@ echo "======= Compare => ok ========\n";
 echo implode( "\n" , $std_output ) ;
 echo "\n";
 
-exit( 0 );
-
+*/
 
