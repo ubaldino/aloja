@@ -5,10 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Laravel</title>
-
-        <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
+        <title>Aloja</title>
 
         <!-- Styles -->
         <style>
@@ -74,18 +71,14 @@
             @endif
 
             <div class="content">
-                <div class="title m-b-md">
-                    Laravel
-                </div>
+                    <form action="/" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <textarea name="source_code" id="txt_source_code" cols="60" rows="25"></textarea><br>
+                    <input type="submit"  value="Subir Codigo">
+                </form>
 
-                <div class="links">
-                    <a href="https://laravel.com/docs">Documentation</a>
-                    <a href="https://laracasts.com">Laracasts</a>
-                    <a href="https://laravel-news.com">News</a>
-                    <a href="https://forge.laravel.com">Forge</a>
-                    <a href="https://github.com/laravel/laravel">GitHub</a>
-                </div>
             </div>
         </div>
     </body>
 </html>
+
