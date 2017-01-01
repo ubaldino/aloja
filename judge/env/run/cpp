@@ -51,7 +51,7 @@ fi
 
 # this script makes use of safeexec to execute the code with less privilegies
 # make sure that directories below are correct.
-sf="`pwd`/safeexec"
+sf="`pwd`/env/safeexec"
 
 if [ "$1" == "" -o "$2" == "" -o "$3" == "" ]; then
     echo "parameter problem"

@@ -44,7 +44,7 @@
 bocau=`id -u`
 bocag=`id -g`
 
-sf="`pwd`/safeexec"
+sf="`pwd`/env/safeexec"
 
 if [ "$1" == "" -o "$2" == "" -o "$3" == "" ]; then
     echo "parameter problem"
@@ -112,10 +112,6 @@ fi
 if [ "$ret" != "0" ]; then
   echo "Compilation Error: $ret"
   exit $ret
-else
-  echo "======= Successful Run ========"
-  echo "compare/py src/output2 stdout0"
-  compare/py src/output2 stdout0
 fi
 
 exit $ret

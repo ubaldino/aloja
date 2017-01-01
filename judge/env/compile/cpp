@@ -64,7 +64,7 @@ fi
 # this script makes use of safeexec to execute the code with less privilegies
 # make sure that directories below are correct.
 
-sf="`pwd`/safeexec"
+sf="`pwd`/env/safeexec"
 
 if [ ! -x $sf ]; then
     echo "$sf not found or it's not executable"
@@ -120,11 +120,5 @@ if [ "$ret" != "0" ]; then
   cat log
   exit $ret
 fi
-
-echo $ret
-cat log
-
-run/cpp $exe src/input2 1
-
 
 exit $ret

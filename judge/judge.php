@@ -27,19 +27,26 @@ require_once  APP_PATH . 'env/Main.php' ;
         exec( "rm " . APP_PATH . "log" );
         exec( "rm " . APP_PATH . "{stderr0,stdin0,stdout0}" );
 
+        $answer['source_code'] = str_replace ( array("\r" ) , '' , $answer['source_code'] );
 
-        $source_code_file = APP_PATH . "src/" . $answer['slug_name'] . "." . $answer['lang_name'] ;
+        // set tools for judge
+        $compiler_file = $answer['lang_name'];        // py , c , c++
+        $compiler_file = ( $compiler_file == 'c++' ) ? 'cpp' : $compiler_file ; // py , c , cpp
+        $compiler_file = ( $compiler_file == 'python' ) ? 'py' : $compiler_file ; // py , c , cpp
+        $exe_file      = 'exe';
+
+        $source_code_file = APP_PATH . "src/" . $answer['slug_name'] . "." . $compiler_file ;
         $input_file = APP_PATH . "src/input" ;
         $output_file = APP_PATH . "src/output" ;
 
         // Prepare files into src folder
-        file_put_contents( $source_code_file , $answer['source_code'] ) ;
+        $data = mb_convert_encoding( $answer['source_code'] , 'UTF-8' );
+
+        file_put_contents( $source_code_file , $data ) ;
         file_put_contents( $input_file , $answer['input'] ) ;
         file_put_contents( $output_file , $answer['output'] ) ;
 
-        // set tools for judge
-        $compiler_file = $answer['lang_name'];        // py , c , cpp
-        $exe_file      = 'exe';
+
 
         if( $compiler_file == 'java' ) $exe_file = 'jar';
         else if( $compiler_file == 'py' ) $exe_file = 'py';

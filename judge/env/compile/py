@@ -66,7 +66,7 @@ fi
 
 # this script makes use of safeexec to execute the code with less privilegies
 # make sure that directories below are correct.
-sf="`pwd`/safeexec"
+sf="`pwd`/env/safeexec"
 
 maxm=512000
 if [ "$4" != "" ]; then
@@ -95,8 +95,9 @@ echo "Current directory is $cdir" >&2
 
 /usr/bin/python2 -c "__import__('compiler').parse(open('$name').read())" 2> log
 ret=$?
-/usr/bin/python2 -c "import shutil; shutil.copy2('$name', '$exe')"
-
+#/usr/bin/python2 -c "import shutil; shutil.copy2('$name', '$exe')"
+cp $name $exe
+chmod u+x $exe
 if [ -f "stdout0" ]; then
 	cat "stdout0"
 fi
@@ -108,11 +109,6 @@ if [ "$ret" != "0" ]; then
 	echo "Compilation Error: $ret"
   cat log
 	exit $ret
-else
-  cat log
-  echo "======= Successful compilation ========"
-  echo "run/py $exe src/input2 1"
-  run/py $exe src/input2 1
 fi
 
 
