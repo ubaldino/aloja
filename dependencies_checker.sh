@@ -29,6 +29,15 @@ if [ ! -x "$cc" ]; then
     exit 47
 fi
 
+
+cc=/usr/bin/php
+if [ ! -x "$cc" ]; then
+    echo "$cc not found or it's not executable"
+    exit 47
+fi
+
+
+
 echo "Dependencies Satisfied"
 
 exit 0;
