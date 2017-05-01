@@ -1,42 +1,41 @@
 #!/bin/bash
-cc=/usr/bin/gcc
+
+cc=`which gcc`
 if [ ! -x "$cc" ]; then
     echo "$cc not found or it's not executable"
     exit 47
 fi
 
-cc=/usr/bin/g++
+cc=`which g++`
 if [ ! -x "$cc" ]; then
     echo "$cc not found or it's not executable"
     exit 47
 fi
 
-cc=/usr/bin/python2
+cc=`which python2`
 if [ ! -x "$cc" ]; then
     echo "$cc not found or it's not executable"
     exit 47
 fi
 
-cc=/usr/bin/javac
+cc=`which javac`
 if [ ! -x "$cc" ]; then
     echo "$cc not found or it's not executable"
     exit 47
 fi
 
-cc=/usr/bin/jar
-if [ ! -x "$cc" ]; then
-    echo "$cc not found or it's not executable"
-    exit 47
-fi
-
-
-cc=/usr/bin/php
+cc=`which jar`
 if [ ! -x "$cc" ]; then
     echo "$cc not found or it's not executable"
     exit 47
 fi
 
 
+cc=`which php`
+if [ ! -x "$cc" ]; then
+    echo "$cc not found or it's not executable"
+    exit 47
+fi
 
 echo "Dependencies Satisfied"
 
